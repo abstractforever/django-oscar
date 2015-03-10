@@ -74,3 +74,11 @@
     {% endif %}
 
 {% endblock dashboard_content %}
+
+{% block onbodyload %}
+    {{ block.super }}
+    oscar.dashboard.product_list.init({
+    	saveText:"{% trans "Save"%}",
+    	submit_url: '{% url 'dashboard:catalogue-product-update'%}'
+    });
+{% endblock %}
