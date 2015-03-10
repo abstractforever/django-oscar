@@ -3863,3 +3863,27 @@ textarea.plain {
   }
 }
 /*# sourceMappingURL=dashboard.css.map */
+
+/*product_list style*/
+
+.edit-item-cell{
+	cursor: pointer;
+	float: left;
+	background-image: url(../img/ui/dashboard/edit16x16.png);
+	width: 16px;
+	height: 16px;
+	margin-top: 20px;
+	margin-left: 3px;
+}
+.item-cell-show{
+	display:block;
+	width: 200px;
+	float: left;
+}
+.new-item-cell-textArea{
+	height: 50px;
+	width:180px;
+}
+.save-item-cell{
+	margin-left: 3px;
+}
