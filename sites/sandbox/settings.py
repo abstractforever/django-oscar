@@ -361,7 +361,9 @@ HAYSTACK_CONNECTIONS = {
 # =============
 # Debug Toolbar
 # =============
-
+DEBUG_TOOLBAR_CONFIG = {
+    'JQUERY_URL': '//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.0.min.js',
+}
 # Implicit setup can often lead to problems with circular imports, so we
 # explicitly wire up the toolbar
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
@@ -381,7 +383,6 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
 INTERNAL_IPS = ['127.0.0.1', '::1']
-
 # ==============
 # Oscar settings
 # ==============
