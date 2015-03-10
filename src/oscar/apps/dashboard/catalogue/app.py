@@ -29,6 +29,8 @@ class CatalogueApplication(Application):
                                           'ProductCreateUpdateView')
     product_delete_view = get_class('dashboard.catalogue.views',
                                     'ProductDeleteView')
+    product_update_view=get_class('dashboard.catalogue.views',
+                                  'ProductUpdateView')
 
     product_class_create_view = get_class('dashboard.catalogue.views',
                                           'ProductClassCreateView')
@@ -70,6 +72,9 @@ class CatalogueApplication(Application):
             url(r'^products/(?P<pk>\d+)/delete/$',
                 self.product_delete_view.as_view(),
                 name='catalogue-product-delete'),
+             url(r'^products/update/$',
+                self.product_update_view.as_view(),
+                name='catalogue-product-update'),
             url(r'^$', self.product_list_view.as_view(),
                 name='catalogue-product-list'),
             url(r'^stock-alerts/$', self.stock_alert_view.as_view(),
