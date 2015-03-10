@@ -1,2 +1,5 @@
 {% load django_tables2 %}
-<a href="{% url 'dashboard:catalogue-product' pk=record.pk %}{% querystring %}">{{ value }}</a>
+{% load i18n %}
+<p data-id="{{record.pk}}" fieldName="title" class="item-cell-area" title="{% trans "Edit"%}{% trans "Title"%}">
+	<a class="item-cell-show" editType="textarea" href="{% url 'dashboard:catalogue-product' pk=record.pk %}{% querystring %}">{{ value }}</a>
+</p>
