@@ -12,6 +12,7 @@ from oscar.core.loading import get_classes, get_model
 from django_tables2 import SingleTableMixin
 
 from oscar.views.generic import ObjectLookupView
+from django.http.response import HttpResponse
 
 (ProductForm,
  ProductClassSelectForm,
@@ -486,6 +487,16 @@ class ProductDeleteView(generic.DeleteView):
             messages.success(self.request, msg)
             return reverse('dashboard:catalogue-product-list')
 
+class ProductUpdateView(generic.UpdateView):
+    def post(self, request, *args, **kwargs):
+        proId = request.POST['id']
+        fieldName=request.POST['fieldName']
+        val = request.POST['val']
+        print "id="+proId+";fieldName="+fieldName+";val=" + val
+        oldProduct = Product.objects.get(id=proId) 
+        setattr(oldProduct, fieldName, val)
+        oldProduct.save() 
+        return HttpResponse("success", content_type='application/javascript')
 
 class StockAlertListView(generic.ListView):
     template_name = 'dashboard/catalogue/stockalert_list.html'
