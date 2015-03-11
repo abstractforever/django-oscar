@@ -245,70 +245,23 @@ var oscar = (function(o, $) {
         },
         product_list:{
         	init:function(options){
-        		var cellEditArea = $('<p></p>');
-        		var editImage = $('<img class="edit-item-cell">');
-        		var editInput = $('<input class="new-item-cell">');
-        		var editTextArea = $('<textarea rows="3" class="new-item-cell-textArea"></textarea>');
-        		var editItem = null;
-        		var editSave = $('<a href="#" class="btn btn-primary save-item-cell">'+options.saveText+'</a>');
-        		var currClickItem = null;
-        		
-        		var doSaveCellHandler = function(){
-        			var oldVal = editItem.attr('cell-data');
-        			var id = editItem.attr('data-id');
-        			var fieldName=editItem.attr('fieldName');
-        			var newVal = editItem.val();
-        			var csrf = o.getCsrfToken();
-        			//ajax save
-        			 $.ajax({
-                         type: 'POST',
-                         data: {id:id,fieldName:fieldName,val:newVal,csrfmiddlewaretoken:csrf},
-                         dataType: "json",
-                         url: options.submit_url,
-                         beforeSend: function(xhr, settings) {
-                             xhr.setRequestHeader("X-CSRFToken", csrf);
-                         },
-                         success:function(data, textStatus){
-                        	 console.log('success,',data);
-                         },
-                         error:function (XMLHttpRequest, textStatus, errorThrown) {
-                        	 console.log('error');
-                         }
-                     });
-        			return false;
-        		};
-        		
-        		var doEditCellHandler = function(event){
-        			console.log('doEditCellHandler');
-        			var p =  $(this).parent();
-        			var a = p.find('.item-cell-show')[0];
-        			var editType = $(a).attr('editType');
-        			if(editType=='textarea'){
-        				editItem = editTextArea;
-        			}else{
-        				editItem = editInput;
+        		$.fn.editable.defaults.mode = 'popup';
+        		$.fn.editable.defaults.ajaxOptions = {dataType: "json"};
+        		var csrf = o.getCsrfToken();
+        		$('.item-cell-upc').editable({
+        			params:{
+        				csrfmiddlewaretoken:csrf
+        			},
+        			success: function(response, newValue) {
+        		        
+        		    }
+        		});
+        		$('.item-cell-title').editable({
+        			inputclass:'item-title-textArea',
+        			rows: 3,
+        			params:{
+        				csrfmiddlewaretoken:csrf
         			}
-        			p.attr("style","display:none;");
-                    var td = p.parent();
-                    td.append(cellEditArea);
-                    cellEditArea.append(editItem).append(editSave);
-                    var val = a.innerText;
-                    editItem.val(val);
-                    editItem.attr('cell-data',val);
-                    editItem.attr('data-id',p.attr('data-id'));
-                    editItem.attr('fieldName',p.attr('fieldName'));
-                    editSave.click(doSaveCellHandler);
-                    editItem.click(function(){return false});
-                    currClickItem = p;
-                    event.stopPropagation();
-        		};
-        		
-        		$('.table tr').mouseover(function(){
-        			editImage.remove();
-        		  	var cellArea = $(this).find(".item-cell-area")[0];
-        	  		$(cellArea).append(editImage);
-        	  		editImage.click(doEditCellHandler);
-        			return false;
         		});
         	}
         },
