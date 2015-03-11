@@ -72,7 +72,7 @@ class CatalogueApplication(Application):
             url(r'^products/(?P<pk>\d+)/delete/$',
                 self.product_delete_view.as_view(),
                 name='catalogue-product-delete'),
-             url(r'^products/update/$',
+             url(r'^products/(?P<pk>\d+)/update/$',
                 self.product_update_view.as_view(),
                 name='catalogue-product-update'),
             url(r'^$', self.product_list_view.as_view(),
