@@ -1,5 +1,4 @@
 {% load django_tables2 %}
 {% load i18n %}
-<p data-id="{{record.pk}}" fieldName="title" class="item-cell-area" title="{% trans "Edit"%}{% trans "Title"%}">
-	<a class="item-cell-show" editType="textarea" href="{% url 'dashboard:catalogue-product' pk=record.pk %}{% querystring %}">{{ value }}</a>
-</p>
+<a class="item-cell-title" data-type="textarea" href="{% url 'dashboard:catalogue-product' pk=record.pk %}{% querystring %}" data-name="title" data-url="{% url 'dashboard:catalogue-product-update' pk=record.pk %}" data-type="text" data-pk="{{record.pk}}" data-title="{% trans "Edit"%} {% trans "Title"%}" title="{% trans "Edit"%} {% trans "Title"%}">{{ value }}</a
+
