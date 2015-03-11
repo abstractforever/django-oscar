@@ -15,6 +15,9 @@ class ProductTable(DashboardTable):
         verbose_name=_('Title'),
         template_name='dashboard/catalogue/product_row_title.html',
         order_by='title', accessor=A('title'))
+    upc = TemplateColumn(
+        template_name='dashboard/catalogue/product_row_upc.html',
+        order_by='upc', accessor=A('upc'))
     image = TemplateColumn(
         verbose_name=_('Image'),
         template_name='dashboard/catalogue/product_row_image.html',
