@@ -1,0 +1,3 @@
+{% load django_tables2 %}
+{% load i18n %}
+<a class="item-cell-upc" href="#" data-name="upc" data-url="{% url 'dashboard:catalogue-product-update' pk=record.pk %}" data-type="text" data-pk="{{record.pk}}" data-title="{% trans "Edit"%} upc" title="{% trans "Edit"%} upc">{{ value }}</a

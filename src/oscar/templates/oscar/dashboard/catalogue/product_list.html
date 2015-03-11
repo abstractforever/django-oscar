@@ -7,6 +7,12 @@
 
 {% block body_class %}{{ block.super }} catalogue{% endblock %}
 
+{% block extrastyles %}
+    {{ block.super }}
+    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+{% endblock %}
+
+
 {% block title %}
     {% trans "Products" %} | {{ block.super }}
 {% endblock %}
@@ -75,10 +81,14 @@
 
 {% endblock dashboard_content %}
 
+
+{% block extrascripts %}
+    {{ block.super }}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap-editable/js/bootstrap-editable.js"></script>
+{% endblock %}
+
+
 {% block onbodyload %}
     {{ block.super }}
-    oscar.dashboard.product_list.init({
-    	saveText:"{% trans "Save"%}",
-    	submit_url: '{% url 'dashboard:catalogue-product-update'%}'
-    });
+    oscar.dashboard.product_list.init();
 {% endblock %}
