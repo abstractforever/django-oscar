@@ -21,6 +21,8 @@ class CatalogueApplication(Application):
 
     product_list_view = get_class('dashboard.catalogue.views',
                                   'ProductListView')
+    product_ajax_list_view=get_class('dashboard.catalogue.views',
+                                  'ProductAjaxListView')
     product_lookup_view = get_class('dashboard.catalogue.views',
                                     'ProductLookupView')
     product_create_redirect_view = get_class('dashboard.catalogue.views',
@@ -77,6 +79,8 @@ class CatalogueApplication(Application):
                 name='catalogue-product-update'),
             url(r'^$', self.product_list_view.as_view(),
                 name='catalogue-product-list'),
+            url(r'^products/$', self.product_ajax_list_view.as_view(),
+                name='catalogue-product-ajax-list'),
             url(r'^stock-alerts/$', self.stock_alert_view.as_view(),
                 name='stock-alert-list'),
             url(r'^product-lookup/$', self.product_lookup_view.as_view(),
