@@ -96,7 +96,7 @@ class ProductListView(SingleTableMixin, generic.TemplateView):
         return table
 
     def get_table_pagination(self):
-        return dict(per_page=6)
+        return dict(per_page=20)
 
     def filter_queryset(self, queryset):
         """
@@ -143,7 +143,7 @@ class ProductAjaxListView(generic.TemplateView):
     
     def get(self, request, *args, **kwargs):
         page=int(request.GET['page'])
-        per_page = 6
+        per_page = 20
         first = (page-1)*per_page
         last = first + per_page
         product_list = Product.objects.order_by('-date_updated').exclude(structure=Product.CHILD).all()[first:last]
