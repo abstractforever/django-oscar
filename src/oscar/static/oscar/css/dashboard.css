@@ -3875,3 +3875,7 @@ table td{
 .item-cell-upc,.item-cell-title{
 	border-bottom: none 1px #0088cc !important;
 }
+.editable-image {
+    width: 200px;
+    height: 200px;
+}
