@@ -96,7 +96,7 @@ class ProductListView(SingleTableMixin, generic.TemplateView):
         return table
 
     def get_table_pagination(self):
-        return dict(per_page=20)
+        return dict(per_page=6)
 
     def filter_queryset(self, queryset):
         """
@@ -139,6 +139,35 @@ class ProductListView(SingleTableMixin, generic.TemplateView):
 
         return queryset
 
+class ProductAjaxListView(generic.TemplateView):
+    
+    def get(self, request, *args, **kwargs):
+        page=int(request.GET['page'])
+        per_page = 6
+        first = (page-1)*per_page
+        last = first + per_page
+        product_list = Product.objects.order_by('-date_updated').exclude(structure=Product.CHILD).all()[first:last]
+        plist = [];
+        for product in product_list:
+            primary_image = product.primary_image()
+            if product.is_standalone:
+                variants = '-'
+                stock_records=product.num_stockrecords
+            else:
+                stock_records='-'
+                variants = str(product.children.count())
+            plist.append({'pk':product.pk,'title':product.title,'upc':product.upc
+                             ,'product_class':product.product_class.name
+                             ,'date_updated':product.date_updated.strftime('%c')
+                             ,'variants':variants
+                             ,'stock_records':stock_records
+                             ,'get_absolute_url':product.get_absolute_url()
+                             ,'image':{
+                                      'caption':primary_image.caption
+                                      ,'original_url':primary_image.original.url
+                              }
+                          })
+        return HttpResponse(json.dumps(plist), content_type='application/javascript')
 
 class ProductCreateRedirectView(generic.RedirectView):
     permanent = False
