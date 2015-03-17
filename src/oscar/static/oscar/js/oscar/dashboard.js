@@ -273,6 +273,7 @@ var oscar = (function(o, $) {
 				var td_actions_template='<td class="actions"> <div class="btn-toolbar"> <div class="btn-group"> <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">#actions#<span class="caret"></span> </a> <ul class="dropdown-menu pull-right"> <li> <a href="#edit_url#">#edit#</a> </li> <li> <a href="#query_url#"> #query#</a> </li> <li> <a href="#delete_url#">#delete#</a> </li> </ul> </div> </div> </td>';
 				var product_edit_url = options.product_edit_url.substring(0,options.product_edit_url.length-2);
 				var product_update_url = options.product_update_url.substring(0,options.product_update_url.length-2);
+				//Virtual scrollbar
         		$(window).scroll(function () {
     		    	if ($(document).scrollTop() >= $(document).height() - $(window).height() && !loading) {
     		    		loading = true;
