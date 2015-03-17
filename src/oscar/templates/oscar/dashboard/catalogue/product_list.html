@@ -85,10 +85,22 @@
 {% block extrascripts %}
     {{ block.super }}
     <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap-editable/js/bootstrap-editable.js"></script>
+    <script src="{% static "oscar/js/oscar/editable-image.js" %}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 
 
 {% block onbodyload %}
     {{ block.super }}
-    oscar.dashboard.product_list.init();
+    oscar.dashboard.product_list.init({
+    	product_edit_url:"{% url 'dashboard:catalogue-product' pk=0 %}",
+    	product_update_url:"{% url 'dashboard:catalogue-product-update' pk=0 %}",
+    	product_delete_url:"{% url 'dashboard:catalogue-product-delete' pk=0 %}",
+    	edit_title_desc:"{% trans 'Edit'%} {% trans 'Title'%}",
+    	edit_upc_desc:"{% trans 'Edit'%} upc",
+    	actions_desc:"{% trans "Actions" %}",
+    	edit_desc:"{% trans "Edit" %}",
+    	query_desc:"{% trans "View on site" %}",
+    	delete_desc:"{% trans "Delete" %}",
+    	product_ajax_list_url: "{% url 'dashboard:catalogue-product-ajax-list'%}"
+    });
 {% endblock %}
