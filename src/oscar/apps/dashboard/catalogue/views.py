@@ -13,6 +13,7 @@ from django_tables2 import SingleTableMixin
 
 from oscar.views.generic import ObjectLookupView
 from django.http.response import HttpResponse
+from django import template
 import json
 
 (ProductForm,
@@ -96,7 +97,7 @@ class ProductListView(SingleTableMixin, generic.TemplateView):
         return table
 
     def get_table_pagination(self):
-        return dict(per_page=20)
+        return dict(per_page=6)
 
     def filter_queryset(self, queryset):
         """
@@ -143,11 +144,12 @@ class ProductAjaxListView(generic.TemplateView):
     
     def get(self, request, *args, **kwargs):
         page=int(request.GET['page'])
-        per_page = 20
+        per_page = 6
         first = (page-1)*per_page
         last = first + per_page
         product_list = Product.objects.order_by('-date_updated').exclude(structure=Product.CHILD).all()[first:last]
         plist = [];
+        t = template.Template("{{date_updated}}")
         for product in product_list:
             primary_image = product.primary_image()
             if product.is_standalone:
@@ -156,12 +158,14 @@ class ProductAjaxListView(generic.TemplateView):
             else:
                 stock_records='-'
                 variants = str(product.children.count())
+            date_updated =  t.render(template.Context({"date_updated":product.date_updated}))
             plist.append({'pk':product.pk,'title':product.title,'upc':product.upc
                              ,'product_class':product.product_class.name
-                             ,'date_updated':product.date_updated.strftime('%c')
+                             ,'date_updated':date_updated
                              ,'variants':variants
                              ,'stock_records':stock_records
                              ,'get_absolute_url':product.get_absolute_url()
+                             ,'get_title':product.get_title()
                              ,'image':{
                                       'caption':primary_image.caption
                                       ,'original_url':primary_image.original.url
