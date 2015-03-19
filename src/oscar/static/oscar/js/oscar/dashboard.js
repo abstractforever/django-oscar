@@ -267,10 +267,15 @@ var oscar = (function(o, $) {
         		initCellEditable();
         		var loading = false;
 				var page = 2;
-				var td_title_template = '<td class="title"> <a class="item-cell-title editable editable-pre-wrapped editable-click" data-type="textarea" href="#href#" data-name="title" data-url="#url#" data-pk="#pk#" data-title="#title#" title="#title#">#value#</a> </td>';
-				var td_upc_template =  '<td class="upc"> <a class="item-cell-upc editable editable-click" href="#" data-name="upc" data-url="#url#" data-type="text" data-pk="#pk#" data-title="#title#" title="#title#">#value#</a> </td>';
-				var td_image_template = '<td class="image"> <a href="#original_url#" rel="lightbox_#upc#" class="sub-image editable editable-click" data-type="image" data-pk="#pk#" data-title="#title#" title="title"> <img src="#url#" alt="#title#" width="70" height="70"  data-description="#caption#"> </a> </td>';
-				var td_actions_template='<td class="actions"> <div class="btn-toolbar"> <div class="btn-group"> <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">#actions#<span class="caret"></span> </a> <ul class="dropdown-menu pull-right"> <li> <a href="#edit_url#">#edit#</a> </li> <li> <a href="#query_url#"> #query#</a> </li> <li> <a href="#delete_url#">#delete#</a> </li> </ul> </div> </div> </td>';
+				var td_title_template = '<td class="title"> <a class="item-cell-title editable editable-pre-wrapped editable-click" data-type="textarea" href="#href#" data-name="title" data-url="#url#" data-pk="#pk#" data-title="#title#" title="#title#">#value#</a> </td>'
+														.replace(/#title#/ig,options.edit_title_desc);
+				var td_upc_template =  '<td class="upc"> <a class="item-cell-upc editable editable-click" href="#" data-name="upc" data-url="#url#" data-type="text" data-pk="#pk#" data-title="#title#" title="#title#">#value#</a> </td>'
+														.replace(/#title#/ig,options.edit_upc_desc);
+				var td_image_template = '<td class="image"> <a href="#original_url#" rel="lightbox_#upc#" class="sub-image editable editable-click" data-type="image" data-pk="#pk#" data-title="#title#" title="#title#"> <img src="#url#" alt="#get_title#" width="70" height="70"  data-description="#caption#"> </a> </td>'
+														.replace(/#title#/ig,options.edit_image_desc);
+				var td_actions_template='<td class="actions"> <div class="btn-toolbar"> <div class="btn-group"> <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">#actions#<span class="caret"></span> </a> <ul class="dropdown-menu pull-right"> <li> <a href="#edit_url#">#edit#</a> </li> <li> <a href="#query_url#"> #query#</a> </li> <li> <a href="#delete_url#">#delete#</a> </li> </ul> </div> </div> </td>'
+														.replace(/#actions#/ig,options.actions_desc).replace(/#edit#/ig,options.edit_desc)
+										    			.replace(/#query#/ig,options.query_desc).replace(/#delete#/ig,options.delete_desc);
 				var product_edit_url = options.product_edit_url.substring(0,options.product_edit_url.length-2);
 				//Virtual scrollbar
         		$(window).scroll(function () {
@@ -294,17 +299,18 @@ var oscar = (function(o, $) {
 					    			}
 					    			var product_update_url = options.product_update_url.replace(0,record.pk);
 					    			var td_title = td_title_template.replace(/#href#/ig,product_edit_url+record.pk+'/?')
-					    			.replace(/#url#/ig,product_update_url).replace(/#pk#/ig,record.pk)
-					    			.replace(/#title#/ig,options.edit_title_desc).replace(/#value#/ig,record.title);
-					    			var td_upc =  td_upc_template.replace(/#url#/ig,product_update_url).replace(/#pk#/ig,record.pk)
-					    			.replace(/#title#/ig,options.edit_upc_desc).replace(/#value#/ig,record.upc);
-					    			var td_image=td_image_template.replace(/#url#/ig,record.image.original_url).replace(/#upc#/ig,record.upc);
+											    			.replace(/#url#/ig,product_update_url).replace(/#pk#/ig,record.pk)
+											    			.replace(/#value#/ig,record.title);
+					    			var td_upc =  td_upc_template.replace(/#url#/ig,product_update_url)
+											    			.replace(/#pk#/ig,record.pk)
+											    			.replace(/#value#/ig,record.upc);
+					    			var td_image=td_image_template.replace(/#url#/ig,record.image.original_url).replace(/#upc#/ig,record.upc)
+					    									.replace(/#caption#/ig,record.caption).replace(/#get_title#/ig,record.get_title);
 					    			var td_product_class='<td class="product_class">'+record.product_class+'</td>';
 					    			var td_variants='<td class="variants">'+record.variants+'</td>';
 					    			var td_stock_records='<td class="stock_records">'+record.stock_records+'</td>';
 					    			var td_date_updated='<td class="date_updated">'+record.date_updated+'</td>';
-					    			var td_actions=td_actions_template.replace(/#actions#/ig,options.actions_desc).replace(/#edit#/ig,options.edit_desc)
-					    			.replace(/#query#/ig,options.query_desc).replace(/#delete#/ig,options.delete_desc).replace(/#edit_url#/ig,product_edit_url+record.pk+'/?')
+					    			var td_actions=td_actions_template.replace(/#edit_url#/ig,product_edit_url+record.pk+'/?')
 					    			.replace(/#query_url#/ig,record.get_absolute_url).replace(/#delete_url#/ig,options.product_delete_url.replace(0,record.pk));
 					    			tr.append(td_title);
 					    			tr.append(td_upc);
