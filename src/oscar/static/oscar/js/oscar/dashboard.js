@@ -245,7 +245,7 @@ var oscar = (function(o, $) {
         },
         product_list:{
         	init:function(options){
-        		$(".pager").hide();
+        		$(".pager .next").hide();
         		$.fn.editable.defaults.mode = 'popup';
         		$.fn.editable.defaults.ajaxOptions = {dataType: "json"};
         		var csrf = o.getCsrfToken();
@@ -281,7 +281,9 @@ var oscar = (function(o, $) {
 			    				data = data.trim();
 			    				if(data.length>0){
 				    				$('.table tbody').append(data);
-			    					page++;
+				    				var pagerInfo = $(".pager .current").html();
+				    				$(".pager .current").html(pagerInfo.replace(page-1,page));
+				    				page++;
 			    					initCellEditable();
 			    				}
 					    		loading = false;
