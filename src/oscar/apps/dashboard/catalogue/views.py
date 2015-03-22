@@ -140,6 +140,20 @@ class ProductListView(SingleTableMixin, generic.TemplateView):
 
         return queryset
 
+class ProductPageListView(generic.TemplateView):
+      template_name = 'dashboard/catalogue/product_page_data.html'
+      
+      def get_context_data(self, **kwargs):
+        ctx = super(ProductPageListView, self).get_context_data(**kwargs)
+        page=int(self.request.GET['page'])
+        per_page = 6
+        print 'page='+str(page)
+        first = (page-1)*per_page
+        last = first + per_page
+        product_list = Product.objects.order_by('-date_updated').exclude(structure=Product.CHILD).all()[first:last]
+        ctx['list'] = product_list
+        return ctx
+
 class ProductAjaxListView(generic.TemplateView):
     
     def get(self, request, *args, **kwargs):
