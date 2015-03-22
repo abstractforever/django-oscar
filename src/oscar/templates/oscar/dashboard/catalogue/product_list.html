@@ -92,16 +92,6 @@
 {% block onbodyload %}
     {{ block.super }}
     oscar.dashboard.product_list.init({
-    	product_edit_url:"{% url 'dashboard:catalogue-product' pk=0 %}",
-    	product_update_url:"{% url 'dashboard:catalogue-product-update' pk=0 %}",
-    	product_delete_url:"{% url 'dashboard:catalogue-product-delete' pk=0 %}",
-    	edit_title_desc:"{% trans 'Edit'%} {% trans 'Title'%}",
-    	edit_upc_desc:"{% trans 'Edit'%} upc",
-    	edit_image_desc:"{% trans 'Upload, change or remove images' %}",
-    	actions_desc:"{% trans "Actions" %}",
-    	edit_desc:"{% trans "Edit" %}",
-    	query_desc:"{% trans "View on site" %}",
-    	delete_desc:"{% trans "Delete" %}",
-    	product_ajax_list_url: "{% url 'dashboard:catalogue-product-ajax-list'%}"
+    	product_page_list_url: "{% url 'dashboard:catalogue-product-page-list'%}"
     });
 {% endblock %}
