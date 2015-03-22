@@ -1,0 +1,66 @@
+{% load i18n %}
+{% load thumbnail %}
+{% for record in list %}
+<tr class="{% cycle 'odd' 'even' %}">
+	<td class="title">
+		<a class="item-cell-title" data-type="textarea" href="{% url 'dashboard:catalogue-product' pk=record.pk %}" data-name="title" data-url="{% url 'dashboard:catalogue-product-update' pk=record.pk %}" data-type="text" data-pk="{{record.pk}}" data-title="{% trans 'Edit'%} {% trans 'Title'%}" title="{% trans 'Edit'%} {% trans 'Title'%}">{{ record.title }}</a
+	</td>
+	<td class="upc">
+		<a class="item-cell-upc" href="#" data-name="upc" data-url="{% url 'dashboard:catalogue-product-update' pk=record.pk %}" data-type="text" data-pk="{{record.pk}}" data-title="{% trans 'Edit'%} upc" title="{% trans 'Edit'%} upc">{{ record.upc }}</a
+	</td>
+	<td class="image">
+		{% if record.primary_image.original.url %}
+		    {% with image=record.primary_image %}
+		        {% thumbnail image.original "70x70" upscale=False as thumb %}
+		        <a href="{{ image.original.url }}" rel="lightbox_{{ record.upc|default:"-" }}" class="sub-image" data-type="image" data-pk="{{record.pk}}" data-title="{% trans 'Upload, change or remove images' %}" title="{% trans 'Upload, change or remove images' %}">
+		            <img src="{{ thumb.url }}" alt="{{ record.get_title }}" data-description="{% if image.caption %}{{ image.caption }}{% endif %}">
+		        </a>
+		        {% endthumbnail %}
+		    {% endwith %}
+		{% else %}
+		    —
+		{% endif %}
+	</td>
+	<td class="product_class">
+		{{record.product_class}}
+	</td>
+	<td class="variants">
+		{% if record.is_standalone %}
+		    -
+		{% else %}
+		    {{ record.children.count }}
+		{% endif %}
+	</td>
+	<td class="stock_records">
+		{% if record.is_parent %}
+		    -
+		{% else %}
+		    {{ record.num_stockrecords }}
+		{% endif %}
+	</td>
+	<td class="date_updated">
+		{{record.date_updated}}
+	</td>
+	<td class="actions">
+		<div class="btn-toolbar">
+		    <div class="btn-group">
+		        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+		            {% trans "Actions" %}
+		            <span class="caret"></span>
+		        </a>
+		        <ul class="dropdown-menu pull-right">
+		            <li>
+		                <a href="{% url 'dashboard:catalogue-product' pk=record.id %}">{% trans "Edit" %}</a>
+		            </li>
+		            <li>
+		                <a href="{{ record.get_absolute_url }}"> {% trans "View on site" %}</a>
+		            </li>
+		            <li>
+		                <a href="{% url 'dashboard:catalogue-product-delete' pk=record.id %}">{% trans "Delete" %}</a>
+		            </li>
+		        </ul>
+		    </div>
+		</div>
+	</td>
+</tr>
+{% endfor %}
