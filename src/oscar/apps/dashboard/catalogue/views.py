@@ -15,6 +15,7 @@ from oscar.views.generic import ObjectLookupView
 from django.http.response import HttpResponse
 from django import template
 import json
+import zipfile
 
 (ProductForm,
  ProductClassSelectForm,
@@ -141,9 +142,9 @@ class ProductListView(SingleTableMixin, generic.TemplateView):
         return queryset
 
 class ProductPageListView(generic.TemplateView):
-      template_name = 'dashboard/catalogue/product_page_data.html'
+    template_name = 'dashboard/catalogue/product_page_data.html'
       
-      def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs):
         ctx = super(ProductPageListView, self).get_context_data(**kwargs)
         page=int(self.request.GET['page'])
         per_page = 6
@@ -153,6 +154,21 @@ class ProductPageListView(generic.TemplateView):
         product_list = Product.objects.order_by('-date_updated').exclude(structure=Product.CHILD).all()[first:last]
         ctx['list'] = product_list
         return ctx
+
+class ProductProcessUpload(generic.TemplateView):
+    def post(self, request, *args, **kwargs):
+        f = request.FILES.get("productFile");
+        z = zipfile.ZipFile(f,'r')
+        fpcsv = z.read("products/products.csv")
+        rowDataArray = fpcsv.split("\n")
+        count = len(rowDataArray)
+        for i in range(1,count):
+            rowData = rowDataArray[i]
+            if rowData!='':
+                print rowData
+            else:
+                pass
+        return HttpResponse("{success:true}", content_type='application/javascript')
 
 class ProductAjaxListView(generic.TemplateView):
     
