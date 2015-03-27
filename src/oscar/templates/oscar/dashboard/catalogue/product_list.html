@@ -10,6 +10,7 @@
 {% block extrastyles %}
     {{ block.super }}
     <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}oscar/js/fileupload/css/jquery.fileupload.css" />
 {% endblock %}
 
 
@@ -39,10 +40,16 @@
             <h3><i class="icon-sitemap icon-large"></i> {% trans "Create new product" %}</h3>
         </div>
         <div class="well">
-            <form action="{% url 'dashboard:catalogue-product-create' %}" method="get" class="form-inline">
+            <form action="{% url 'dashboard:catalogue-product-create' %}" method="get" class="form-inline newProductForm">
                 {% include "dashboard/partials/form_fields_inline.html" with form=productclass_form %}
                 <button class="btn btn-primary" type="submit" data-loading-text="{% trans 'Submitting...' %}"><i class="icon-plus"></i> {% trans "New Product" %}</button>
             </form>
+       		<a class="fileinput-button uploadProductBtn">
+				<button class="btn btn-primary" ><i class="icon-plus"></i>{% trans " Upload Product" %}</button>
+				<input type="file" class="fileupload" name="productFile"/>
+			</a>
+			<span class="uploadProductError"></span>
+			<span class="uploadProductSuccess"></span>
         </div>
     {% endblock %}
 
@@ -86,6 +93,8 @@
     {{ block.super }}
     <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap-editable/js/bootstrap-editable.js"></script>
     <script src="{% static "oscar/js/oscar/editable-image.js" %}" type="text/javascript" charset="utf-8"></script>
+    <script src="{% static "oscar/js/fileupload/js/jquery.iframe-transport.js"%}" type="text/javascript"></script>
+	<script src="{% static "oscar/js/fileupload/js/jquery.fileupload.js"%}" type="text/javascript"></script>
 {% endblock %}
 
 
@@ -93,5 +102,8 @@
     {{ block.super }}
     oscar.dashboard.product_list.init({
     	product_page_list_url: "{% url 'dashboard:catalogue-product-page-list'%}"
+    });
+    oscar.dashboard.product_file.init({
+    	product_process_upload_url:"{% url 'dashboard:catalogue-product-process-upload'%}"
     });
 {% endblock %}
