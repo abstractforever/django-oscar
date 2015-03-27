@@ -3879,3 +3879,22 @@ table td{
     width: 200px;
     height: 200px;
 }
+.uploadProductBtn{
+	float: left;
+	margin-left: 5px;
+}
+.newProductForm{
+	float: left;
+}
+.uploadProductError{
+	line-height:30px;
+	margin-left:20px;
+	display:none;
+	color:red;
+}
+.uploadProductSuccess{
+	line-height:30px;
+	display:none;
+	margin-left:20px;
+	color:green;
+}
