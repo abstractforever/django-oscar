@@ -243,6 +243,33 @@ var oscar = (function(o, $) {
                 }
             }
         },
+        product_file:{
+        	init:function(options){
+        		$('.fileupload').fileupload({
+        			url:options.product_process_upload_url,
+        			formData: {csrfmiddlewaretoken:o.getCsrfToken()},
+        			done:function(e,response){  
+        				var result = response.result;
+        				$(".uploadProductSuccess").html(result).show();
+    		    		$(".uploadProductError").html("").hide();
+        		    } ,
+        		    add:function(e,data){
+        		    	var fileType = data.files[0].name.split('.').pop();
+        		    	if("zip".indexOf(fileType)<0){
+        		    		$(".uploadProductSuccess").html("").hide();
+        		    		$(".uploadProductError").html("Invalid file type,you have to upload the zip-format file.").show();
+        		    		return false;
+        		    	}
+        		    	data.submit();
+        		    }
+        		}).bind('fileuploadstart', function (e){
+        			console.log('fileuploadstart');
+        		}).bind('fileuploadfail', function (e, data) {
+        			var file = data.files[0];
+        			console.log('fileuploadfail:',data.result);
+        		});
+        	}
+        },
         product_list:{
         	init:function(options){
         		$(".pager .next").hide();
