@@ -17,6 +17,7 @@ from django import template
 import json
 import zipfile
 from django.core.exceptions import ObjectDoesNotExist
+from oscar.apps.catalogue.models import ProductAttribute
 
 (ProductForm,
  ProductClassSelectForm,
@@ -156,16 +157,46 @@ class ProductPageListView(generic.TemplateView):
         return ctx
 
 class ProductProcessUpload(generic.TemplateView):
+    template_name = 'dashboard/catalogue/product_upload_result.html'
+    productClassMap = {}
+    
     def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
         f = request.FILES.get("productFile")
         z = zipfile.ZipFile(f,'r')
         fpcsv = z.read("products/products.csv")
         fpccsv = z.read("products/product_classes.csv")
+        pacsv = z.read("products/product_attrs.csv")
         self.parseProductClass(fpccsv)
         self.parseProduct(fpcsv)
-        return HttpResponse("{success:true}", content_type='application/javascript')
+        self.parseProductAttr(pacsv)
+        context['success'] = True
+        return self.render_to_response(context)
     
+    def parseProductAttr(self,pafile):
+        rowDataArray = pafile.split("\n")
+        count = len(rowDataArray)
+        for i in range(1,count):
+            rowData = rowDataArray[i]
+            if rowData!='':
+                rowDataArray=rowData.split(';')
+                upc = rowDataArray[0]
+                try:
+                    product = Product.objects.get(upc=upc)
+                    attrList = self.productClassMap[product.product_class.name]
+                    for index in range(len(attrList)):
+                        attrCode=attrList[index]
+                        attrVal = rowDataArray[index+1]
+                        attribute = product.get_product_class().attributes.get(code=attrCode)
+                        attribute.save_value(product, attrVal)
+                except Exception,msg:
+                    #print "Product.DoesNotExist:",upc
+                    print msg
+            else:
+                pass
+              
     def parseProductClass(self,pcfile):
+        self.productClassMap.clear()
         rowDataArray = pcfile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
@@ -173,14 +204,32 @@ class ProductProcessUpload(generic.TemplateView):
             if rowData!='':
                 rowDataArray=rowData.split(';')
                 nameVal = rowDataArray[0]
-                print "---"+nameVal+"---"
-                #attrCount = rowDataArray[1]
+                attrCount = rowDataArray[1]
                 try:
-                    ProductClass.objects.get(name=nameVal)
-                except ObjectDoesNotExist:
-                    print 'ProductClass ObjectDoesNotExist'
-                    newProductClass= ProductClass(name=unicode(nameVal,"utf-8"))
-                    newProductClass.save()
+                    productClass = ProductClass.objects.get(name=nameVal)
+                except ProductClass.DoesNotExist:
+                    productClass= ProductClass(name=unicode(nameVal,"utf-8"))
+                    productClass.save()
+                    
+                    attrWeight = ProductAttribute(name="weight",code="weight")
+                    attrWeight.product_class = productClass
+                    attrWeight.save()
+                    
+                    print "add productClass:",nameVal
+                    print "add productAttr:weight"
+                    
+                attrList = []    
+                for i in range(2,2+int(attrCount)):
+                    attrName = rowDataArray[i]
+                    try:
+                        attrObj = ProductAttribute.objects.get(code=attrName,product_class=productClass)
+                    except ProductAttribute.DoesNotExist:
+                        attrObj = ProductAttribute(name=attrName,code=attrName)
+                        attrObj.product_class = productClass
+                        attrObj.save()
+                        print "add productAttr:",attrName
+                    attrList.append(attrName)
+                self.productClassMap[productClass.name]=attrList
             else:
                 pass
     
@@ -190,29 +239,29 @@ class ProductProcessUpload(generic.TemplateView):
         for i in range(1,count):
             rowData = rowDataArray[i]
             if rowData!='':
-                upc,title,description,price,weight,product_class=rowData.split(';')
-                print upc,title,description,price,weight,product_class
+                upc,title,description,price,weight,productClassName=rowData.split(';')
                 try:
-                    oldProduct = Product.objects.get(upc=upc)
-                    oldProduct.title=unicode(title,'utf-8')
-                    oldProduct.description=unicode(description,'utf-8')
-                    oldProduct.save()
-                    print 'update product:',oldProduct.id
-                except ObjectDoesNotExist:
-                    print "Product objectDoesNotExist"
-                    newProduct = Product(upc=upc,title=title)
+                    product = Product.objects.get(upc=upc)
+                    print 'update product:',product.upc
+                except Product.DoesNotExist:
+                    product = Product()
+                    productClassName = productClassName.rstrip()
                     try:
-                        product_class = product_class.rstrip()
-                        print "***"+product_class+"****"
-                        productClass = ProductClass.objects.get(name=product_class)
-                        productClass.products.add(newProduct)
-                        print 'add new product:',newProduct.id
-                    #except ObjectDoesNotExist:
-                    except Exception,msg:
+                        productClass = ProductClass.objects.get(name=productClassName)
+                        product.product_class = productClass
+                        product.upc = upc
+                        print 'add new product:',upc
+                    except ProductClass.DoesNotExist:
                         #add log
-                        #print 'ProductClass ObjectDoesNotExist'
-                        print msg
-                         
+                        print 'ProductClass DoesNotExist:',productClassName
+                        continue
+                    product.title=unicode(title,'utf-8')
+                    product.description=unicode(description,'utf-8')
+                    product.save()
+                    
+                    product.attr.weight = weight
+                    product.attr.save()
+                    
             else:
                 pass
     
