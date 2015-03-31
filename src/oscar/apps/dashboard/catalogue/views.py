@@ -16,6 +16,7 @@ from django.http.response import HttpResponse
 from django import template
 import json
 import zipfile
+from django.core.exceptions import ObjectDoesNotExist
 
 (ProductForm,
  ProductClassSelectForm,
@@ -148,7 +149,6 @@ class ProductPageListView(generic.TemplateView):
         ctx = super(ProductPageListView, self).get_context_data(**kwargs)
         page=int(self.request.GET['page'])
         per_page = 6
-        print 'page='+str(page)
         first = (page-1)*per_page
         last = first + per_page
         product_list = Product.objects.order_by('-date_updated').exclude(structure=Product.CHILD).all()[first:last]
@@ -157,19 +157,65 @@ class ProductPageListView(generic.TemplateView):
 
 class ProductProcessUpload(generic.TemplateView):
     def post(self, request, *args, **kwargs):
-        f = request.FILES.get("productFile");
+        f = request.FILES.get("productFile")
         z = zipfile.ZipFile(f,'r')
         fpcsv = z.read("products/products.csv")
-        rowDataArray = fpcsv.split("\n")
+        fpccsv = z.read("products/product_classes.csv")
+        self.parseProductClass(fpccsv)
+        self.parseProduct(fpcsv)
+        return HttpResponse("{success:true}", content_type='application/javascript')
+    
+    def parseProductClass(self,pcfile):
+        rowDataArray = pcfile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
             rowData = rowDataArray[i]
             if rowData!='':
-                print rowData
+                rowDataArray=rowData.split(';')
+                nameVal = rowDataArray[0]
+                print "---"+nameVal+"---"
+                #attrCount = rowDataArray[1]
+                try:
+                    ProductClass.objects.get(name=nameVal)
+                except ObjectDoesNotExist:
+                    print 'ProductClass ObjectDoesNotExist'
+                    newProductClass= ProductClass(name=unicode(nameVal,"utf-8"))
+                    newProductClass.save()
             else:
                 pass
-        return HttpResponse("{success:true}", content_type='application/javascript')
-
+    
+    def parseProduct(self,pfile):
+        rowDataArray = pfile.split("\n")
+        count = len(rowDataArray)
+        for i in range(1,count):
+            rowData = rowDataArray[i]
+            if rowData!='':
+                upc,title,description,price,weight,product_class=rowData.split(';')
+                print upc,title,description,price,weight,product_class
+                try:
+                    oldProduct = Product.objects.get(upc=upc)
+                    oldProduct.title=unicode(title,'utf-8')
+                    oldProduct.description=unicode(description,'utf-8')
+                    oldProduct.save()
+                    print 'update product:',oldProduct.id
+                except ObjectDoesNotExist:
+                    print "Product objectDoesNotExist"
+                    newProduct = Product(upc=upc,title=title)
+                    try:
+                        product_class = product_class.rstrip()
+                        print "***"+product_class+"****"
+                        productClass = ProductClass.objects.get(name=product_class)
+                        productClass.products.add(newProduct)
+                        print 'add new product:',newProduct.id
+                    #except ObjectDoesNotExist:
+                    except Exception,msg:
+                        #add log
+                        #print 'ProductClass ObjectDoesNotExist'
+                        print msg
+                         
+            else:
+                pass
+    
 class ProductAjaxListView(generic.TemplateView):
     
     def get(self, request, *args, **kwargs):
