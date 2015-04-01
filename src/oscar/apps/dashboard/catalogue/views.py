@@ -16,8 +16,8 @@ from django.http.response import HttpResponse
 from django import template
 import json
 import zipfile
-from django.core.exceptions import ObjectDoesNotExist
 from oscar.apps.catalogue.models import ProductAttribute
+import re
 
 (ProductForm,
  ProductClassSelectForm,
@@ -162,16 +162,33 @@ class ProductProcessUpload(generic.TemplateView):
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        f = request.FILES.get("productFile")
-        z = zipfile.ZipFile(f,'r')
-        fpcsv = z.read("products/products.csv")
-        fpccsv = z.read("products/product_classes.csv")
-        pacsv = z.read("products/product_attrs.csv")
+        productFile = request.FILES.get("productFile")
+        zfile = zipfile.ZipFile(productFile,'r')
+        fpcsv = zfile.read("products/products.csv")
+        fpccsv = zfile.read("products/product_classes.csv")
+        pacsv = zfile.read("products/product_attrs.csv")
         self.parseProductClass(fpccsv)
         self.parseProduct(fpcsv)
         self.parseProductAttr(pacsv)
+        self.parseProductImage(zfile)
         context['success'] = True
         return self.render_to_response(context)
+    
+    def parseProductImage(self,zfile):
+        for name in zfile.namelist():
+            matchObj = re.match("^products/pics/(.+)/.+", name)
+            if matchObj:
+                upc = matchObj.group(1)
+                try:
+                    print "upc:",upc
+                    product = Product.objects.get(upc=upc)
+                    productImage = ProductImage()
+                    productImage.product = product
+                except Exception,e:
+                    print e
+                
+            else:
+                pass
     
     def parseProductAttr(self,pafile):
         rowDataArray = pafile.split("\n")
