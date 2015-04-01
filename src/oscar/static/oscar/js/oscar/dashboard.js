@@ -249,14 +249,20 @@ var oscar = (function(o, $) {
         			url:options.product_process_upload_url,
         			formData: {csrfmiddlewaretoken:o.getCsrfToken()},
         			done:function(e,response){  
-        				var result = response.result;
-        				$(".uploadProductSuccess").html(result).show();
+        				var result = $.trim(response.result);
     		    		$(".uploadProductError").html("").hide();
+    		    		$(result).dialog({
+			    		      modal: true,
+			    		      buttons: {
+			    		        Ok: function() {
+			    		          $( this ).dialog( "close" );
+			    		        }
+			    		      }
+    		    		})
         		    } ,
         		    add:function(e,data){
         		    	var fileType = data.files[0].name.split('.').pop();
         		    	if("zip".indexOf(fileType)<0){
-        		    		$(".uploadProductSuccess").html("").hide();
         		    		$(".uploadProductError").html("Invalid file type,you have to upload the zip-format file.").show();
         		    		return false;
         		    	}
