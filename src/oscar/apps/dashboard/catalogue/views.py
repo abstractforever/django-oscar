@@ -18,6 +18,8 @@ import json
 import zipfile
 from oscar.apps.catalogue.models import ProductAttribute
 import re
+from django.core.files.base import ContentFile
+from django.db import IntegrityError
 
 (ProductForm,
  ProductClassSelectForm,
@@ -159,38 +161,54 @@ class ProductPageListView(generic.TemplateView):
 class ProductProcessUpload(generic.TemplateView):
     template_name = 'dashboard/catalogue/product_upload_result.html'
     productClassMap = {}
+    productZip = None
+    productResult = []
+    productAttrResult = []
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         productFile = request.FILES.get("productFile")
-        zfile = zipfile.ZipFile(productFile,'r')
-        fpcsv = zfile.read("products/products.csv")
-        fpccsv = zfile.read("products/product_classes.csv")
-        pacsv = zfile.read("products/product_attrs.csv")
-        self.parseProductClass(fpccsv)
-        self.parseProduct(fpcsv)
-        self.parseProductAttr(pacsv)
-        self.parseProductImage(zfile)
-        context['success'] = True
+        self.productZip= zipfile.ZipFile(productFile,'r')
+        productClassCount = self.parseProductClass()
+        productCount = self.parseProduct()
+        productAttrCount = self.parseProductAttr()
+        self.parseProductImage()
+        context['result'] = {"productClassCount":productClassCount,"productCount":productCount,"productAttrCount":productAttrCount}
         return self.render_to_response(context)
     
-    def parseProductImage(self,zfile):
-        for name in zfile.namelist():
-            matchObj = re.match("^products/pics/(.+)/.+", name)
+    def parseProductImage(self):
+        for name in self.productZip.namelist():
+            print "path=",name
+            matchObj = re.match("^products/pics/(.+)/$", name)
             if matchObj:
+                display_order = 0
                 upc = matchObj.group(1)
                 try:
-                    print "upc:",upc
                     product = Product.objects.get(upc=upc)
+                    print  ProductImage.objects.filter(product=product)
+                    ProductImage.objects.filter(product=product).delete()
+                    print  ProductImage.objects.filter(product=product)
+                except Exception,e:
+                    print e.meesage
+                 
+            matchObj = re.match("^products/pics/(.+)/(.+)", name)
+            if matchObj:
+                upc = matchObj.group(1)
+                imageName = matchObj.group(2)
+                try:
                     productImage = ProductImage()
                     productImage.product = product
+                    fimage = self.productZip.read(name)
+                    productImage.display_order=display_order
+                    productImage.original.save(imageName,ContentFile(fimage))
+                    display_order+=1
                 except Exception,e:
-                    print e
-                
-            else:
-                pass
+                    print e.message
+                print imageName,display_order
     
-    def parseProductAttr(self,pafile):
+    def parseProductAttr(self):
+        productAttrCount=0
+        pafile = self.productZip.read("products/product_attrs.csv")
         rowDataArray = pafile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
@@ -206,14 +224,15 @@ class ProductProcessUpload(generic.TemplateView):
                         attrVal = rowDataArray[index+1]
                         attribute = product.get_product_class().attributes.get(code=attrCode)
                         attribute.save_value(product, attrVal)
-                except Exception,msg:
-                    #print "Product.DoesNotExist:",upc
-                    print msg
-            else:
-                pass
-              
-    def parseProductClass(self,pcfile):
+                    productAttrCount+=1
+                except Exception,e:
+                    self.productAttrResult.append({"upc":upc,"error":e.message})
+        return productAttrCount
+          
+    def parseProductClass(self):
+        productClassCount = 0
         self.productClassMap.clear()
+        pcfile = self.productZip.read("products/product_classes.csv")
         rowDataArray = pcfile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
@@ -224,6 +243,7 @@ class ProductProcessUpload(generic.TemplateView):
                 attrCount = rowDataArray[1]
                 try:
                     productClass = ProductClass.objects.get(name=nameVal)
+                    print "update productClass:",nameVal
                 except ProductClass.DoesNotExist:
                     productClass= ProductClass(name=unicode(nameVal,"utf-8"))
                     productClass.save()
@@ -234,7 +254,7 @@ class ProductProcessUpload(generic.TemplateView):
                     
                     print "add productClass:",nameVal
                     print "add productAttr:weight"
-                    
+                productClassCount+=1    
                 attrList = []    
                 for i in range(2,2+int(attrCount)):
                     attrName = rowDataArray[i]
@@ -247,10 +267,11 @@ class ProductProcessUpload(generic.TemplateView):
                         print "add productAttr:",attrName
                     attrList.append(attrName)
                 self.productClassMap[productClass.name]=attrList
-            else:
-                pass
+        return productClassCount
     
-    def parseProduct(self,pfile):
+    def parseProduct(self):
+        productCount = 0
+        pfile = self.productZip.read("products/products.csv")
         rowDataArray = pfile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
@@ -262,26 +283,26 @@ class ProductProcessUpload(generic.TemplateView):
                     print 'update product:',product.upc
                 except Product.DoesNotExist:
                     product = Product()
-                    productClassName = productClassName.rstrip()
+                    productClassName = productClassName.strip()
                     try:
                         productClass = ProductClass.objects.get(name=productClassName)
                         product.product_class = productClass
                         product.upc = upc
                         print 'add new product:',upc
-                    except ProductClass.DoesNotExist:
-                        #add log
+                    except ProductClass.DoesNotExist,e:
                         print 'ProductClass DoesNotExist:',productClassName
+                        self.productResult.append({"upc":upc,"error":e.message})
                         continue
-                    product.title=unicode(title,'utf-8')
-                    product.description=unicode(description,'utf-8')
-                    product.save()
                     
-                    product.attr.weight = weight
-                    product.attr.save()
+                product.title=unicode(title,'utf-8')
+                product.description=unicode(description,'utf-8')
+                product.save()
                     
-            else:
-                pass
-    
+                product.attr.weight = weight
+                product.attr.save()
+                productCount+=1
+        return productCount    
+     
 class ProductAjaxListView(generic.TemplateView):
     
     def get(self, request, *args, **kwargs):
