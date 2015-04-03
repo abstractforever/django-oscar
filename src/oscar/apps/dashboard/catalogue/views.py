@@ -305,7 +305,10 @@ class ProductProcessUpload(generic.TemplateView):
                 count = 1
                 try:
                     partner = user.partners.get_or_create(name=user.username)[0]
-                    partner.stockrecords.get_or_create(product=product,partner_sku=product.upc, price_excl_tax=price, num_in_stock=count)
+                    stockrecord = partner.stockrecords.get_or_create(product=product,partner_sku=product.upc)[0]
+                    stockrecord.price_excl_tax=price
+                    stockrecord.num_in_stock=count
+                    stockrecord.save()
                     productCount+=1
                 except Exception,e:
                     productResult.append({"upc":upc,"error":e})
