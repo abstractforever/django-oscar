@@ -251,14 +251,7 @@ var oscar = (function(o, $) {
         			done:function(e,response){  
         				var result = $.trim(response.result);
     		    		$(".uploadProductError").html("").hide();
-    		    		$(result).dialog({
-			    		      modal: true,
-			    		      buttons: {
-			    		        Ok: function() {
-			    		          $( this ).dialog( "close" );
-			    		        }
-			    		      }
-    		    		})
+    		    		$(result).modal("show");
         		    } ,
         		    add:function(e,data){
         		    	var fileType = data.files[0].name.split('.').pop();
