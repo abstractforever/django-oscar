@@ -19,7 +19,6 @@ import zipfile
 from oscar.apps.catalogue.models import ProductAttribute
 import re
 from django.core.files.base import ContentFile
-from django.db import IntegrityError
 
 (ProductForm,
  ProductClassSelectForm,
@@ -161,23 +160,24 @@ class ProductPageListView(generic.TemplateView):
 class ProductProcessUpload(generic.TemplateView):
     template_name = 'dashboard/catalogue/product_upload_result.html'
     productClassMap = {}
-    productZip = None
-    productResult = []
-    productAttrResult = []
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         productFile = request.FILES.get("productFile")
-        self.productZip= zipfile.ZipFile(productFile,'r')
-        productClassCount = self.parseProductClass()
-        productCount = self.parseProduct()
-        productAttrCount = self.parseProductAttr()
-        self.parseProductImage()
-        context['result'] = {"productClassCount":productClassCount,"productCount":productCount,"productAttrCount":productAttrCount}
+        productZip= zipfile.ZipFile(productFile,'r')
+        productClassCount = self.parseProductClass(productZip)
+        productInfo = self.parseProduct(productZip)
+        productAttrInfo = self.parseProductAttr(productZip)
+        self.parseProductImage(productZip)
+        context['result'] = {"productClassCount":productClassCount
+                             ,"productCount":productInfo["productCount"]
+                             ,"productAttrCount":productAttrInfo["productAttrCount"]}
+        context['productResult'] = productInfo["productResult"]
+        context['productAttrResult'] = productAttrInfo["productAttrResult"]
         return self.render_to_response(context)
     
-    def parseProductImage(self):
-        for name in self.productZip.namelist():
+    def parseProductImage(self,productZip):
+        for name in productZip.namelist():
             print "path=",name
             matchObj = re.match("^products/pics/(.+)/$", name)
             if matchObj:
@@ -185,9 +185,7 @@ class ProductProcessUpload(generic.TemplateView):
                 upc = matchObj.group(1)
                 try:
                     product = Product.objects.get(upc=upc)
-                    print  ProductImage.objects.filter(product=product)
                     ProductImage.objects.filter(product=product).delete()
-                    print  ProductImage.objects.filter(product=product)
                 except Exception,e:
                     print e.meesage
                  
@@ -198,7 +196,7 @@ class ProductProcessUpload(generic.TemplateView):
                 try:
                     productImage = ProductImage()
                     productImage.product = product
-                    fimage = self.productZip.read(name)
+                    fimage = productZip.read(name)
                     productImage.display_order=display_order
                     productImage.original.save(imageName,ContentFile(fimage))
                     display_order+=1
@@ -206,9 +204,10 @@ class ProductProcessUpload(generic.TemplateView):
                     print e.message
                 print imageName,display_order
     
-    def parseProductAttr(self):
+    def parseProductAttr(self,productZip):
         productAttrCount=0
-        pafile = self.productZip.read("products/product_attrs.csv")
+        productAttrResult=[]
+        pafile = productZip.read("products/product_attrs.csv")
         rowDataArray = pafile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
@@ -226,13 +225,13 @@ class ProductProcessUpload(generic.TemplateView):
                         attribute.save_value(product, attrVal)
                     productAttrCount+=1
                 except Exception,e:
-                    self.productAttrResult.append({"upc":upc,"error":e.message})
-        return productAttrCount
+                    productAttrResult.append({"upc":upc,"error":e.message})
+        return {"productAttrCount":productAttrCount,"productAttrResult":productAttrResult}
           
-    def parseProductClass(self):
+    def parseProductClass(self,productZip):
         productClassCount = 0
         self.productClassMap.clear()
-        pcfile = self.productZip.read("products/product_classes.csv")
+        pcfile = productZip.read("products/product_classes.csv")
         rowDataArray = pcfile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
@@ -269,9 +268,10 @@ class ProductProcessUpload(generic.TemplateView):
                 self.productClassMap[productClass.name]=attrList
         return productClassCount
     
-    def parseProduct(self):
+    def parseProduct(self,productZip):
         productCount = 0
-        pfile = self.productZip.read("products/products.csv")
+        productResult = []
+        pfile = productZip.read("products/products.csv")
         rowDataArray = pfile.split("\n")
         count = len(rowDataArray)
         for i in range(1,count):
@@ -291,7 +291,7 @@ class ProductProcessUpload(generic.TemplateView):
                         print 'add new product:',upc
                     except ProductClass.DoesNotExist,e:
                         print 'ProductClass DoesNotExist:',productClassName
-                        self.productResult.append({"upc":upc,"error":e.message})
+                        productResult.append({"upc":upc,"error":e.message})
                         continue
                     
                 product.title=unicode(title,'utf-8')
@@ -300,8 +300,16 @@ class ProductProcessUpload(generic.TemplateView):
                     
                 product.attr.weight = weight
                 product.attr.save()
-                productCount+=1
-        return productCount    
+                
+                user = self.request.user
+                count = 1
+                try:
+                    partner = user.partners.get_or_create(name=user.username)[0]
+                    partner.stockrecords.get_or_create(product=product,partner_sku=product.upc, price_excl_tax=price, num_in_stock=count)
+                    productCount+=1
+                except Exception,e:
+                    productResult.append({"upc":upc,"error":e})
+        return {"productCount":productCount,"productResult":productResult}
      
 class ProductAjaxListView(generic.TemplateView):
     
