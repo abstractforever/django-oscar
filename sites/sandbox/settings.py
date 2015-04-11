@@ -52,11 +52,11 @@ SILENCED_SYSTEM_CHECKS = ['1_6.W001', ]
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'Europe/London'
+TIME_ZONE = 'Asia/Shanghai'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-gb'
+LANGUAGE_CODE = 'zn-ch'
 
 # Includes all languages that have >50% coverage in Transifex
 # Taken from Django's default setting for LANGUAGES
