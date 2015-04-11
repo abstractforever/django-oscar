@@ -472,7 +472,8 @@ THUMBNAIL_KEY_PREFIX = 'oscar-sandbox'
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
-
+# Currency
+OSCAR_DEFAULT_CURRENCY = 'CNY'
 # Try and import local settings which can be used to override any of the above.
 try:
     from settings_local import *
